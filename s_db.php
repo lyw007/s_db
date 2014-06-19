@@ -1,6 +1,8 @@
 <?php
 	class s_db {
 		
+		public $version = "beta 1.1";
+		
 		private $file_name = "";
 		private $table_name = "";
 		private $buffer = array();
@@ -54,6 +56,29 @@
 			return true;
 		}
 		
+		public function rename_table($table, $_table)  //修改数据表名
+		{
+			if (isset($this->buffer[$table]))
+				return false;
+			$this->buffer[$_table] = $this->buffer[$table];
+			$this->buffer["key_".$_table] = $this->buffer["key_".$table];
+			$this->delete_table($table);
+			$this->save_db();
+			$this->select_table($_table);
+			return true;
+		}
+		
+		public function copy_table($table, $_table)  //复制数据表
+		{
+			if (isset($this->buffer[$table]))
+				return false;
+			$this->buffer[$_table] = $this->buffer[$table];
+			$this->buffer["key_".$_table] = $this->buffer["key_".$table];
+			$this->save_db();
+			$this->select_table($_table);
+			return true;
+		}
+		
 		public function delete_table($table)  //删除一个数据表
 		{
 			unset($this->buffer[$table]);
@@ -71,6 +96,24 @@
 			for ($i=0;$i<count($this->buffer["key_".$this->table_name]);++$i)
 				$tmp[$this->buffer["key_".$this->table_name][$i]] = $arr[$i];
 			$this->buffer[$this->table_name][] = $tmp;
+			$this->save_db();
+			return true;
+		}
+		
+		public function change_record($id, $arr)  //根据ID修改记录
+		{
+			if ($this->get_record_id($id) == -1)
+				return false;
+			$this->buffer[$this->table_name][$id] = $arr;
+			$this->save_db();
+			return true;
+		}
+		
+		public function copy_record($id)  //复制一条记录
+		{
+			if ($this->get_record_id($id) == -1)
+				return false;
+			$this->buffer[$this->table_name][] = $this->buffer[$this->table_name][$id];
 			$this->save_db();
 			return true;
 		}
@@ -112,7 +155,7 @@
 			return true;
 		}
 		
-		public function get_record_id($arr)  //获取记录的ID
+		public function get_record_id($arr)  //获取第一条相同记录的ID
 		{
 			if ($this->table_name == "")
 				return false;
@@ -124,6 +167,19 @@
 			return -1;
 		}
 		
+		public function get_records_id($arr)  //获取所有相同记录的ID
+		{
+			if ($this->table_name == "")
+				return false;
+			if (!isset($this->buffer[$this->table_name]))
+				return false;
+			$tmp = array();
+			for ($i=0;$i<count($this->buffer[$this->table_name]);++$i)
+				if ($this->buffer[$this->table_name][$i] == $arr)
+					$tmp[] = $i;
+			return $tmp;
+		}
+		
 		public function get_all_record()  //获取所有记录
 		{
 			if ($this->table_name == "")
@@ -132,6 +188,7 @@
 				return false;
 			return $this->buffer[$this->table_name];
 		}
+		
 		
 		public function get_index()  //获取数据表的索引
 		{
