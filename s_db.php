@@ -58,7 +58,9 @@
 		
 		public function rename_table($table, $_table)  //修改数据表名
 		{
-			if (isset($this->buffer[$table]))
+			if (!isset($this->buffer[$table]))
+				return false;
+			if (isset($this->buffer[$_table]))
 				return false;
 			$this->buffer[$_table] = $this->buffer[$table];
 			$this->buffer["key_".$_table] = $this->buffer["key_".$table];
@@ -70,7 +72,9 @@
 		
 		public function copy_table($table, $_table)  //复制数据表
 		{
-			if (isset($this->buffer[$table]))
+			if (!isset($this->buffer[$table]))
+				return false;
+			if (isset($this->buffer[$_table]))
 				return false;
 			$this->buffer[$_table] = $this->buffer[$table];
 			$this->buffer["key_".$_table] = $this->buffer["key_".$table];
@@ -102,7 +106,11 @@
 		
 		public function change_record($id, $arr)  //根据ID修改记录
 		{
-			if ($this->get_record_id($id) == -1)
+			if ($this->table_name == "")
+				return false;
+			if (!isset($this->buffer[$this->table_name]))
+				return false;
+			if (count($this->buffer[$this->table_name]) < $id)
 				return false;
 			$this->buffer[$this->table_name][$id] = $arr;
 			$this->save_db();
@@ -111,7 +119,11 @@
 		
 		public function copy_record($id)  //复制一条记录
 		{
-			if ($this->get_record_id($id) == -1)
+			if ($this->table_name == "")
+				return false;
+			if (!isset($this->buffer[$this->table_name]))
+				return false;
+			if (count($this->buffer[$this->table_name]) < $id)
 				return false;
 			$this->buffer[$this->table_name][] = $this->buffer[$this->table_name][$id];
 			$this->save_db();
